@@ -9,20 +9,26 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class CategoryForm extends AbstractType
+class ArticleForm extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
             ->add('title')
-            ->add('description')
+            ->add('content')
+            ->add('createdAt')
+            ->add('categories', EntityType::class, [
+                'class' => Category::class,
+                'choice_label' => 'id',
+                'multiple' => true,
+            ])
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Category::class,
+            'data_class' => Article::class,
         ]);
     }
 }
