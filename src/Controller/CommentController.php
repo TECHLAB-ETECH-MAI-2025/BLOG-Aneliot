@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Comment;
 use App\Form\CommentForm;
 use App\Repository\CommentRepository;
+use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,25 +23,42 @@ final class CommentController extends AbstractController
         ]);
     }
 
-    #[Route('/new', name: 'app_comment_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    #[Route('/new/{article_id}', name: 'app_comment_new', methods: ['GET', 'POST'])]
+    public function new(
+        int $article_id,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        ArticleRepository $articleRepository
+    ): Response {
+        $article = $articleRepository->find($article_id);
+        if (!$article) {
+            throw $this->createNotFoundException('Article not found');
+        }
+
         $comment = new Comment();
-        $form = $this->createForm(CommentForm::class, $comment);
+
+        $form = $this->createForm(CommentForm::class, $comment, [
+            'article_id' => $article_id,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $comment->setCreatedAt(new \DateTime());
+            $comment->setArticle($article);
             $entityManager->persist($comment);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_comment_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('app_article_comments', [
+                'id' => $article_id,
+            ], Response::HTTP_SEE_OTHER);
         }
 
         return $this->render('comment/new.html.twig', [
             'comment' => $comment,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
+
 
     #[Route('/{id}', name: 'app_comment_show', methods: ['GET'])]
     public function show(Comment $comment): Response

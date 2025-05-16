@@ -1,39 +1,66 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Article index{% endblock %}
+{% block title %}Blog{% endblock %}
 
 {% block body %}
-    <h1>Article index</h1>
+    <div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Title</th>
-                <th>Content</th>
-                <th>CreatedAt</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for article in articles %}
-            <tr>
-                <td>{{ article.id }}</td>
-                <td>{{ article.title }}</td>
-                <td>{{ article.content }}</td>
-                <td>{{ article.createdAt ? article.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <a href="{{ path('app_article_show', {'id': article.id}) }}">show</a>
-                    <a href="{{ path('app_article_edit', {'id': article.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            {% for article in articles %}
+                <div class="card mb-5 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ article.title }}</h3>
 
-    <a href="{{ path('app_article_new') }}">Create new</a>
+                        <p class="card-text">{{ article.content }}</p>
+
+                        <p class="fst-italic text-muted">
+                            <strong>Catégories :</strong> 
+                            {{ article.categories|map(c => c.title)|join(', ') }}
+                        </p>
+
+                        <hr>
+
+                        <h5>Commentaires</h5>
+
+                        {% if article.comments|length == 0 %}
+                            <p class="text-muted">Aucun commentaire pour le moment.</p>
+                        {% else %}
+                            {% for comment in article.comments|slice(-2, 2) %}
+                                <div class="border-start border-4 border-primary bg-light p-3 mb-3 rounded">
+                                    <strong>{{ comment.author }}:</strong> {{ comment.content }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <a href="{{ path('app_article_comments', {'id': article.id}) }}" class="btn btn-outline-primary btn-sm mb-4">
+                            Voir tous les commentaires
+                        </a>
+
+                        <hr>
+
+                        <h5 class="mt-4">Ajouter un Commentaire</h5>
+                        {{ form_start(forms[article.id]) }}
+                            <div class="mb-3">
+                                {{ form_label(forms[article.id].author, 'Auteur') }}
+                                {{ form_widget(forms[article.id].author, {'attr': {'placeholder': 'Votre nom', 'class': 'form-control'}}) }}
+                                {{ form_errors(forms[article.id].author) }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form_label(forms[article.id].content, 'Commentaire') }}
+                                {{ form_widget(forms[article.id].content, {'attr': {'placeholder': 'Votre commentaire', 'class': 'form-control'}}) }}
+                                {{ form_errors(forms[article.id].content) }}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Commenter</button>
+                        {{ form_end(forms[article.id]) }}
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+</div>
+
 {% endblock %}
