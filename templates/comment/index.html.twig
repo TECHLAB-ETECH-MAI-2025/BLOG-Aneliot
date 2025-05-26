@@ -12,7 +12,7 @@
                 <th>Author</th>
                 <th>Content</th>
                 <th>CreatedAt</th>
-                <th>actions</th>
+                {# <th>actions</th> #}
             </tr>
         </thead>
         <tbody>
@@ -22,10 +22,10 @@
                 <td>{{ comment.author }}</td>
                 <td>{{ comment.content }}</td>
                 <td>{{ comment.createdAt ? comment.createdAt|date('Y-m-d H:i:s') : '' }}</td>
-                <td>
+                {# <td>
                     <a href="{{ path('app_comment_show', {'id': comment.id}) }}">show</a>
                     <a href="{{ path('app_comment_edit', {'id': comment.id}) }}">edit</a>
-                </td>
+                </td> #}
             </tr>
         {% else %}
             <tr>

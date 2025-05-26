@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/comment')]
 final class CommentController extends AbstractController
@@ -23,16 +24,16 @@ final class CommentController extends AbstractController
         ]);
     }
 
-    #[Route('/new/{article_id}', name: 'app_comment_new', methods: ['GET', 'POST'])]
+    #[Route('/new/{article_id}', name: 'app_comment_new', methods: ['POST'])]
     public function new(
         int $article_id,
         Request $request,
         EntityManagerInterface $entityManager,
         ArticleRepository $articleRepository
-    ): Response {
+    ): JsonResponse {
         $article = $articleRepository->find($article_id);
         if (!$article) {
-            throw $this->createNotFoundException('Article not found');
+            return $this->json(['success' => false, 'error' => 'Article not found']);
         }
 
         $comment = new Comment();
@@ -48,43 +49,30 @@ final class CommentController extends AbstractController
             $entityManager->persist($comment);
             $entityManager->flush();
 
-            return $this->redirectToRoute('app_article_comments', [
-                'id' => $article_id,
-            ], Response::HTTP_SEE_OTHER);
+            // Render the comment partial to HTML
+            $commentHtml = $this->renderView('comment/_comment.html.twig', [
+                'comment' => $comment,
+            ]);
+
+            return $this->json([
+                'success' => true,
+                'commentHtml' => $commentHtml,
+                'commentsCount' => count($article->getComments()),
+            ]);
         }
 
-        return $this->render('comment/new.html.twig', [
-            'comment' => $comment,
-            'form' => $form->createView(),
-        ]);
-    }
-
-
-    #[Route('/{id}', name: 'app_comment_show', methods: ['GET'])]
-    public function show(Comment $comment): Response
-    {
-        return $this->render('comment/show.html.twig', [
-            'comment' => $comment,
-        ]);
-    }
-
-    #[Route('/{id}/edit', name: 'app_comment_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Comment $comment, EntityManagerInterface $entityManager): Response
-    {
-        $form = $this->createForm(CommentForm::class, $comment);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_comment_index', [], Response::HTTP_SEE_OTHER);
+        // Extract errors to return
+        $errors = [];
+        foreach ($form->getErrors(true) as $error) {
+            $errors[] = $error->getMessage();
         }
 
-        return $this->render('comment/edit.html.twig', [
-            'comment' => $comment,
-            'form' => $form,
+        return $this->json([
+            'success' => false,
+            'error' => implode(', ', $errors),
         ]);
     }
+
 
     #[Route('/{id}', name: 'app_comment_delete', methods: ['POST'])]
     public function delete(Request $request, Comment $comment, EntityManagerInterface $entityManager): Response

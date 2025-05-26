@@ -1,0 +1,17 @@
+{
+    "@symfony\/stimulus-bundle\/controllers.js": "\/assets\/@symfony\/stimulus-bundle\/controllers-DJeB2bO.js",
+    "@symfony\/stimulus-bundle\/loader.js": "\/assets\/@symfony\/stimulus-bundle\/loader-oV158rG.js",
+    "@symfony\/ux-turbo\/turbo_controller.js": "\/assets\/@symfony\/ux-turbo\/turbo_controller-6cW3NzA.js",
+    "@symfony\/ux-turbo\/turbo_stream_controller.js": "\/assets\/@symfony\/ux-turbo\/turbo_stream_controller-CuXv86G.js",
+    "app.js": "\/assets\/app-l89dsVm.js",
+    "bootstrap.js": "\/assets\/bootstrap-fWNU0-I.js",
+    "controllers\/csrf_protection_controller.js": "\/assets\/controllers\/csrf_protection_controller-wan2ury.js",
+    "controllers\/hello_controller.js": "\/assets\/controllers\/hello_controller-h7Y4WCm.js",
+    "css\/bootstrap.min.css": "\/assets\/css\/bootstrap.min-RB0qvW3.css",
+    "css\/style.css": "\/assets\/css\/style-hWOz2SZ.css",
+    "js\/bootstrap.bundle.min.js": "\/assets\/js\/bootstrap.bundle.min-qIGTemY.js",
+    "js\/categories-autocomplete.js": "\/assets\/js\/categories-autocomplete-XlorYcb.js",
+    "styles\/app.css": "\/assets\/styles\/app-7du9Nxq.css",
+    "vendor\/@hotwired\/stimulus\/stimulus.index.js": "\/assets\/vendor\/@hotwired\/stimulus\/stimulus.index-S4zNcea.js",
+    "vendor\/@hotwired\/turbo\/turbo.index.js": "\/assets\/vendor\/@hotwired\/turbo\/turbo.index-pT15T6h.js"
+}

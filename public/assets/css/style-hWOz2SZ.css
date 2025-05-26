@@ -1,0 +1,112 @@
+/* Container centré */
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 15px;
+  font-family: Arial, sans-serif;
+  color: #222;
+}
+
+/* Card style */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+/* Titre article */
+.card h4 {
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+/* Texte article */
+.card p {
+  font-size: 1rem;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+
+/* Texte date et catégorie */
+.text-muted {
+  color: #666;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
+/* Badges catégories */
+.badge {
+  background-color: #6c757d;
+  color: #fff;
+  padding: 3px 9px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  margin-right: 5px;
+}
+
+/* Section commentaires */
+h6 {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.list-group {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 20px;
+}
+
+.list-group-item {
+  background: #f8f9fa;
+  border-radius: 5px;
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-left: 4px solid #0d6efd;
+}
+
+.list-group-item strong {
+  font-weight: 700;
+}
+
+/* Formulaire commentaires */
+form label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+form input[type="text"],
+form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+}
+
+form button {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #0b5ed7;
+}
+
+/* Petit détail sous forme de ligne */
+hr {
+  border: none;
+  border-top: 1px solid #ddd;
+  margin: 20px 0;
+}

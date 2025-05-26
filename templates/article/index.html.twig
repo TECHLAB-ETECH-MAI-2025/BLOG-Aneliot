@@ -1,17 +1,53 @@
 {% extends 'base.html.twig' %}
 
+{% block title %}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    {{ encore_entry_link_tags('article_list') }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('article_list') }}
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1>Liste des articles</h1>
+
+        <a href="{{ path('app_article_new') }}" class="btn btn-primary mb-3">Nouvel article</a>
+
+        <table id="articles-table" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titre</th>
+                    <th>Catégories</th>
+                    <th>Commentaires</th>
+                    <th>J'aime</th>
+                    <th>Date</th>
+                    {# <th>Actions</th> #}
+                </tr>
+            </thead>
+        </table>
+    </div>
+{% endblock %}
+
+
+{# {% extends 'base.html.twig' %}
+
 {% block title %}Blog{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
+<div class="container mt-5">
     <div class="row">
         <div class="col-md-8 offset-md-2">
 
             {% for article in articles %}
                 <div class="card mb-5 shadow-sm">
                     <div class="card-body">
-                        <h3 class="card-title">{{ article.title }}</h3>
-
+                        <h2 class="card-title">{{ article.title }}</h2>
                         <p class="card-text">{{ article.content }}</p>
 
                         <p class="fst-italic text-muted">
@@ -20,9 +56,17 @@
                         </p>
 
                         <hr>
+                        <div class="d-flex mb-3">
+                            <a href="{{ path('app_article_comments', {'id': article.id}) }}" class="btn btn-outline-primary btn-sm">
+                                Voir tous les commentaires
+                            </a>
+
+                            <button type="button" class="btn btn-primary btn-sm ms-2" data-bs-toggle="modal" data-bs-target="#commentModal{{ article.id }}">
+                                Commenter
+                            </button>
+                        </div>
 
                         <h5>Commentaires</h5>
-
                         {% if article.comments|length == 0 %}
                             <p class="text-muted">Aucun commentaire pour le moment.</p>
                         {% else %}
@@ -33,28 +77,37 @@
                             {% endfor %}
                         {% endif %}
 
-                        <a href="{{ path('app_article_comments', {'id': article.id}) }}" class="btn btn-outline-primary btn-sm mb-4">
-                            Voir tous les commentaires
-                        </a>
+                        <!-- Modal -->
+                        <div class="modal fade" id="commentModal{{ article.id }}" tabindex="-1" aria-labelledby="commentModalLabel{{ article.id }}" aria-hidden="true">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title" id="commentModalLabel{{ article.id }}">Ajouter un commentaire</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                              </div>
+                              <div class="modal-body">
+                                {{ form_start(forms[article.id]) }}
+                                    <div class="mb-3">
+                                        {{ form_label(forms[article.id].author, 'Auteur') }}
+                                        {{ form_widget(forms[article.id].author, {'attr': {'placeholder': 'Votre nom', 'class': 'form-control'}}) }}
+                                        {{ form_errors(forms[article.id].author) }}
+                                    </div>
 
-                        <hr>
-
-                        <h5 class="mt-4">Ajouter un Commentaire</h5>
-                        {{ form_start(forms[article.id]) }}
-                            <div class="mb-3">
-                                {{ form_label(forms[article.id].author, 'Auteur') }}
-                                {{ form_widget(forms[article.id].author, {'attr': {'placeholder': 'Votre nom', 'class': 'form-control'}}) }}
-                                {{ form_errors(forms[article.id].author) }}
+                                    <div class="mb-3">
+                                        {{ form_label(forms[article.id].content, 'Commentaire') }}
+                                        {{ form_widget(forms[article.id].content, {'attr': {'placeholder': 'Votre commentaire', 'class': 'form-control'}}) }}
+                                        {{ form_errors(forms[article.id].content) }}
+                                    </div>
+                              </div>
+                              <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                                {{ form_end(forms[article.id]) }}
+                              </div>
                             </div>
+                          </div>
+                        </div>
 
-                            <div class="mb-3">
-                                {{ form_label(forms[article.id].content, 'Commentaire') }}
-                                {{ form_widget(forms[article.id].content, {'attr': {'placeholder': 'Votre commentaire', 'class': 'form-control'}}) }}
-                                {{ form_errors(forms[article.id].content) }}
-                            </div>
-
-                            <button type="submit" class="btn btn-primary">Commenter</button>
-                        {{ form_end(forms[article.id]) }}
                     </div>
                 </div>
             {% endfor %}
@@ -62,5 +115,4 @@
         </div>
     </div>
 </div>
-
-{% endblock %}
+{% endblock %} #}
