@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -46,11 +48,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?bool $isVerified = null;
 
+    /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'sender')]
+    private Collection $sentMessages;
+
+    /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'receiver')]
+    private Collection $receivedMessages;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->roles = ['ROLE_USER'];
         $this->isVerified = false;
+        $this->sentMessages = new ArrayCollection();
+        $this->receivedMessages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -174,6 +190,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): static
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getSentMessages(): Collection
+    {
+        return $this->sentMessages;
+    }
+
+    public function addSentMessage(Message $sentMessage): static
+    {
+        if (!$this->sentMessages->contains($sentMessage)) {
+            $this->sentMessages->add($sentMessage);
+            $sentMessage->setSender($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSentMessage(Message $sentMessage): static
+    {
+        if ($this->sentMessages->removeElement($sentMessage)) {
+            // set the owning side to null (unless already changed)
+            if ($sentMessage->getSender() === $this) {
+                $sentMessage->setSender(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getReceivedMessages(): Collection
+    {
+        return $this->receivedMessages;
+    }
+
+    public function addReceivedMessage(Message $receivedMessage): static
+    {
+        if (!$this->receivedMessages->contains($receivedMessage)) {
+            $this->receivedMessages->add($receivedMessage);
+            $receivedMessage->setReceiver($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceivedMessage(Message $receivedMessage): static
+    {
+        if ($this->receivedMessages->removeElement($receivedMessage)) {
+            // set the owning side to null (unless already changed)
+            if ($receivedMessage->getReceiver() === $this) {
+                $receivedMessage->setReceiver(null);
+            }
+        }
 
         return $this;
     }

@@ -48,6 +48,7 @@ security:
         - { path: ^/article, roles: PUBLIC_ACCESS }
         - { path: ^/comment, roles: PUBLIC_ACCESS }
         - { path: ^/category, roles: ROLE_ADMIN }
+        - { path: ^/chat, roles: ROLE_USER }
 
 
 
