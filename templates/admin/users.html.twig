@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des utilisateurs{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4">Gestion des utilisateurs</h1>
+
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="mb-3">
+        <a href="{{ path('app_admin_users_new') }}" class="btn btn-primary">+ Nouvel utilisateur</a>
+    </div>
+
+    {% if users is not empty %}
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Rôles</th>
+                        <th>Vérifié</th>
+                        <th>Date d'inscription</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.fullName }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% for role in user.roles %}
+                                    {% if role == 'ROLE_ADMIN' %}
+                                        <span class="badge bg-info text-dark">Admin</span>
+                                    {% elseif role == 'ROLE_SUPER_ADMIN' %}
+                                        <span class="badge bg-warning text-dark">Super Admin</span>
+                                    {% elseif role == 'ROLE_USER' %}
+                                        <span class="badge bg-secondary">Utilisateur</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark">{{ role }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if user.isVerified %}
+                                    <span class="text-success">Oui</span>
+                                {% else %}
+                                    <span class="text-danger">Non</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.createdAt|date('d/m/Y') }}</td>
+                            <td>
+                                <a href="{{ path('app_admin_users_edit', {id: user.id}) }}" class="btn btn-sm btn-outline-primary">Modifier</a>
+
+                                {# Delete form with CSRF token #}
+                                <form method="post" action="{{ path('app_admin_users_delete', {id: user.id}) }}" style="display:inline-block;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer {{ user.fullName }} ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            Aucun utilisateur trouvé.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

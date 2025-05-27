@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4">Bienvenue sur notre application</h1>
+    <p class="lead">Cette application démontre la mise en place d'un système d'authentification complet avec Symfony.</p>
+
+    <p>Vous pouvez vous inscrire, vous connecter, gérer votre profil et bien plus encore.</p>
+
+    <div class="mb-4">
+        {% if not app.user %}
+            <a href="{{ path('app_register') }}" class="btn btn-primary me-2">S'inscrire</a>
+            <a href="{{ path('app_login') }}" class="btn btn-outline-primary">Se connecter</a>
+        {% else %}
+            <a href="{{ path('app_profile') }}" class="btn btn-success me-2">Mon profil</a>
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_admin_dashboard') }}" class="btn btn-warning text-white">Administration</a>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <h2 class="mb-3">Fonctionnalités</h2>
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <strong>Authentification sécurisée</strong> - Système d'authentification complet avec inscription, connexion et gestion des rôles.
+        </li>
+        <li class="list-group-item">
+            <strong>Vérification par email</strong> - Vérification des comptes par email et système de réinitialisation de mot de passe.
+        </li>
+        <li class="list-group-item">
+            <strong>Gestion des utilisateurs</strong> - Interface d'administration pour gérer les utilisateurs et leurs permissions.
+        </li>
+    </ul>
+</div>
+{% endblock %}

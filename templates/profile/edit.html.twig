@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier mon profil{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-edit-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .profile-edit-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .flash-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .submit-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #4361ee;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="profile-edit-container">
+        <h2>Modifier mon profil</h2>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {{ form_start(profileForm) }}
+
+        <div class="form-group">
+            {{ form_label(profileForm.firstName) }}
+            {{ form_widget(profileForm.firstName) }}
+            {{ form_errors(profileForm.firstName) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(profileForm.lastName) }}
+            {{ form_widget(profileForm.lastName) }}
+            {{ form_errors(profileForm.lastName) }}
+        </div>
+
+        <div class="form-group">
+            {{ form_label(profileForm.email) }}
+            {{ form_widget(profileForm.email) }}
+            {{ form_errors(profileForm.email) }}
+        </div>
+
+        <button type="submit" class="submit-button">Enregistrer les modifications</button>
+
+        {{ form_end(profileForm) }}
+    </div>
+{% endblock %}

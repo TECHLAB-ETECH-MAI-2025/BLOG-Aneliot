@@ -9,14 +9,72 @@
     {% endblock %}
 </head>
 <body>
-    {% block body %}{% endblock %}
 
-    {% block javascripts %}
-        {{ encore_entry_script_tags('app') }}
-    {% endblock %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container">
+    <a class="navbar-brand" href="#">Symfony Security</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="{{ path('app_home') }}">Accueil</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ path('app_article_index') }}">Article</a>
+        </li>
 
-    <footer>
-        © 2025 Blog Symfony - Tous droits réservés
-    </footer>
+        {% if is_granted('ROLE_ADMIN') %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ path('app_admin_dashboard') }}">Administration</a>
+          </li>
+          <li class="nav-item">
+          <a class="nav-link" href="{{ path('app_category_index') }}">Catégories</a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        {% if app.user %}
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              {{ app.user.fullName|default(app.user.email) }}
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="{{ path('app_profile') }}">Mon profil</a></li>
+              <li><a class="dropdown-item" href="{{ path('app_profile_edit') }}">Modifier mon profil</a></li>
+              <li><a class="dropdown-item" href="{{ path('app_profile_change_password') }}">Changer de mot de passe</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <form action="{{ path('app_logout') }}" method="post" class="dropdown-item p-0 m-0">
+                  <button type="submit" class="btn btn-link dropdown-item text-danger p-0 m-0">Déconnexion</button>
+                </form>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ path('app_login') }}">Connexion</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ path('app_register') }}">Inscription</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{% block body %}{% endblock %}
+
+{% block javascripts %}
+    {{ encore_entry_script_tags('app') }}
+{% endblock %}
+
+<footer class="text-center mt-5 mb-3 text-muted">
+    © 2025 Blog Symfony - Tous droits réservés
+</footer>
 </body>
 </html>

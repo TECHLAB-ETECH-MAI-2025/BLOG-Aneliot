@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .avatar-placeholder {
+            width: 100px;
+            height: 100px;
+            background-color: #4361ee;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .profile-section {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 30px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .profile-links a {
+            text-decoration: none;
+            color: #4361ee;
+            font-weight: bold;
+        }
+
+        .info-group {
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-weight: bold;
+        }
+
+        .flash-message {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="profile-section">
+
+        <div class="profile-header">
+            <h2>Mon profil</h2>
+            <div class="avatar-placeholder">
+                {{ app.user.firstName|slice(0, 1)|upper }}{{ app.user.lastName|slice(0, 1)|upper }}
+            </div>
+            <p><strong>{{ app.user.fullName }}</strong></p>
+            <p>{{ app.user.email }}</p>
+            <p>
+                {% if app.user.isVerified %}
+                    ✅ Email vérifié
+                {% else %}
+                    ❌ Email non vérifié
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="profile-links">
+            <a href="{{ path('app_profile_edit') }}">Modifier mon profil</a>
+            <a href="{{ path('app_profile_change_password') }}">Changer mon mot de passe</a>
+            <a href="{{ path('app_logout') }}">Déconnexion</a>
+        </div>
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="info-group">
+            <h4>Informations personnelles</h4>
+            <p><span class="info-title">Prénom :</span> {{ app.user.firstName|default('Non renseigné') }}</p>
+            <p><span class="info-title">Nom :</span> {{ app.user.lastName|default('Non renseigné') }}</p>
+            <p><span class="info-title">Email :</span> {{ app.user.email }}</p>
+        </div>
+
+        <div class="info-group">
+            <h4>Informations du compte</h4>
+            <p><span class="info-title">Date d'inscription :</span> {{ app.user.createdAt|date('d/m/Y') }}</p>
+            <p><span class="info-title">Rôle :</span>
+                {% if 'ROLE_ADMIN' in app.user.roles %}
+                    Administrateur
+                {% else %}
+                    Utilisateur
+                {% endif %}
+            </p>
+            <p><span class="info-title">Statut :</span>
+                {% if app.user.isVerified %}
+                    Email vérifié
+                {% else %}
+                    Email non vérifié
+                {% endif %}
+            </p>
+        </div>
+
+    </div>
+{% endblock %}
