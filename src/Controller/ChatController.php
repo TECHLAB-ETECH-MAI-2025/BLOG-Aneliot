@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Update;
 
 #[Route('/chat')]
 class ChatController extends AbstractController
@@ -66,25 +68,74 @@ class ChatController extends AbstractController
             'messages' => $messages,
             'receiver' => $receiver,
             'form' => $form->createView(),
-            'users' => $users, // list for sidebar
+            'users' => $users, 
         ]);
     }
+    // #[Route('/send', name: 'send', methods: ['POST'])]
+    // public function sendMessage(EntityManagerInterface $entityManager, Request $request): Response
+    // {
+    //     $content = $request->request->get('content');
+    //     $receiverId = $request->request->get('receiver');
+        
+    //     $message = new Message();
+    //     $message->setSender($this->getUser());
+    //     $message->setReceiver($entityManager->getRepository(User::class)->find($receiverId));
+    //     $message->setContent($content);
+    //     $message->setCreatedAt(new \DateTime());
+
+    //     $entityManager->persist($message);
+    //     $entityManager->flush();
+
+    //     return new JsonResponse(['success' => true]);
+    // }
     #[Route('/send', name: 'send', methods: ['POST'])]
-    public function sendMessage(EntityManagerInterface $entityManager, Request $request): Response
-    {
+    public function sendMessage(
+        EntityManagerInterface $entityManager,
+        Request $request,
+        HubInterface $hub
+    ): Response {
         $content = $request->request->get('content');
         $receiverId = $request->request->get('receiver');
-        
+
+        $receiver = $entityManager->getRepository(User::class)->find($receiverId);
+        $sender = $this->getUser();
+
         $message = new Message();
-        $message->setSender($this->getUser());
-        $message->setReceiver($entityManager->getRepository(User::class)->find($receiverId));
+        $message->setSender($sender);
+        $message->setReceiver($receiver);
         $message->setContent($content);
         $message->setCreatedAt(new \DateTime());
 
         $entityManager->persist($message);
         $entityManager->flush();
 
+        // Envoie via Mercure
+        $update = new Update(
+             'http://chat.example.com/conversation/' . $receiver->getId(),
+             json_encode([
+                'senderEmail' => $sender->getUserIdentifier(),
+                'message' => $content,
+                'createdAt' => $message->getCreatedAt()->format('H:i:s'),
+            ])
+        );
+
+        $hub->publish($update);
+
         return new JsonResponse(['success' => true]);
+    }
+
+    #[Route('/mercure-test')]
+    public function test(HubInterface $hub): Response
+    {
+        $update = new Update(
+            'http://example.com/test',
+            json_encode(['message' => 'Real-time update from Symfony']),
+            private: false
+        );
+
+        $hub->publish($update);
+
+        return new Response('Update sent');
     }
 
 }
