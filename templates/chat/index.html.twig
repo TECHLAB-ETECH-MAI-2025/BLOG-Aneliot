@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Messagerie{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <h5>Utilisateurs</h5>
+            <ul class="list-group">
+                {% for user in users %}
+                    <li class="list-group-item {% if user.id == receiver.id %}active{% endif %}">
+                        <a href="{{ path('chat_index', {'receiverId': user.id}) }}" class="{% if user.id == receiver.id %}text-white{% else %}text-decoration-none{% endif %}">
+                            {{ user.email }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Chat Area -->
+        <div class="col-md-9">
+            <h4>Chat avec {{ receiver.email }}</h4>
+
+            <div id="chat-messages"
+                 class="border rounded p-3 mb-4"
+                 style="height: 300px; overflow-y: auto; background-color: #f8f9fa;"
+                 data-receiver-id="{{ receiver.id }}">
+                {% for message in messages %}
+                    <div class="mb-2">
+                        <strong>{{ message.sender.email }}</strong>
+                        <small class="text-muted">({{ message.createdAt|date('H:i:s') }})</small>:<br>
+                        <span>{{ message.content }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {# {{ form_start(form, {'attr': {'class': 'mb-3'}}) }}
+                {{ form_row(form.content, {'attr': {'class': 'form-control', 'placeholder': 'Votre message...'}}) }}
+                <button type="submit" class="btn btn-primary mt-2">Envoyer</button>
+            {{ form_end(form) }} #}
+            <form id="chat-form" class="mb-3">
+                <div class="mb-3">
+                    <textarea id="message-content" class="form-control" placeholder="Votre message..."></textarea>
+                    <input type="hidden" id="receiver-id" value="{{ receiver.id }}">
+                </div>
+                <button type="submit" id="send-message" class="btn btn-primary mt-2">Envoyer</button>
+            </form>
+        </div>
+    </div>
+</div>
+{{ encore_entry_script_tags('chat') }}
+{% endblock %}

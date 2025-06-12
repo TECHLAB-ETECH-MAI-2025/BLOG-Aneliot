@@ -15,13 +15,17 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
+<<<<<<< HEAD
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\Cookie;
 use Firebase\JWT\JWT;
+=======
+>>>>>>> feature-chat
 
 #[Route('/chat')]
 class ChatController extends AbstractController
 {
+<<<<<<< HEAD
     // #[Route('/{receiverId}', name: 'chat_index', requirements: ['receiverId' => '\d+'])]
     // public function index(
     //     int $receiverId,
@@ -103,6 +107,8 @@ class ChatController extends AbstractController
 
     //     return $response;
     // }
+=======
+>>>>>>> feature-chat
     #[Route('/{receiverId}', name: 'chat_index', requirements: ['receiverId' => '\d+'])]
     public function index(
         int $receiverId,
@@ -173,6 +179,7 @@ class ChatController extends AbstractController
     //     return new JsonResponse(['success' => true]);
     // }
     #[Route('/send', name: 'send', methods: ['POST'])]
+<<<<<<< HEAD
 public function sendMessage(
     EntityManagerInterface $entityManager,
     Request $request,
@@ -246,6 +253,43 @@ public function sendMessage(
     ]);
 }
 
+=======
+    public function sendMessage(
+        EntityManagerInterface $entityManager,
+        Request $request,
+        HubInterface $hub
+    ): Response {
+        $content = $request->request->get('content');
+        $receiverId = $request->request->get('receiver');
+
+        $receiver = $entityManager->getRepository(User::class)->find($receiverId);
+        $sender = $this->getUser();
+
+        $message = new Message();
+        $message->setSender($sender);
+        $message->setReceiver($receiver);
+        $message->setContent($content);
+        $message->setCreatedAt(new \DateTime());
+
+        $entityManager->persist($message);
+        $entityManager->flush();
+
+        // Envoie via Mercure
+        $update = new Update(
+             'http://chat.example.com/conversation/' . $receiver->getId(),
+             json_encode([
+                'senderEmail' => $sender->getUserIdentifier(),
+                'message' => $content,
+                'createdAt' => $message->getCreatedAt()->format('H:i:s'),
+            ])
+        );
+
+        $hub->publish($update);
+
+        return new JsonResponse(['success' => true]);
+    }
+
+>>>>>>> feature-chat
     #[Route('/mercure-test')]
     public function test(HubInterface $hub): Response
     {

@@ -12,6 +12,7 @@ Encore
     .addEntry('app', './assets/app.js')
     .addEntry('article', './assets/js/article.js')
     .addEntry('article_list', './assets/js/article_list.js')
+    .addEntry('chat', './assets/js/chat.js')
     .splitEntryChunks()
     .enableSingleRuntimeChunk()
     .cleanupOutputBeforeBuild()

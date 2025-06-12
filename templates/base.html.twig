@@ -44,6 +44,7 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
               <li><a class="dropdown-item" href="{{ path('app_profile') }}">Mon profil</a></li>
+              <li><a class="dropdown-item" href="{{ path('chat_index', {'receiverId': app.user.id}) }}">Messages</a></li>
               <li><a class="dropdown-item" href="{{ path('app_profile_edit') }}">Modifier mon profil</a></li>
               <li><a class="dropdown-item" href="{{ path('app_profile_change_password') }}">Changer de mot de passe</a></li>
               <li><hr class="dropdown-divider"></li>
@@ -72,6 +73,7 @@
 {% block javascripts %}
     {{ encore_entry_script_tags('app') }}
 {% endblock %}
+
 
 <footer class="text-center mt-5 mb-3 text-muted">
     © 2025 Blog Symfony - Tous droits réservés
