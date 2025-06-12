@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ArticleLikeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ArticleLikeRepository::class)]
 class ArticleLike
@@ -11,33 +12,25 @@ class ArticleLike
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['article:read'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 45)]
-    private ?string $ipAddress = null;
-
     #[ORM\Column]
+    #[Groups(['article:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'articleLikes')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Article $article = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['article:read'])]
+    private ?User $user = null;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getIpAddress(): ?string
-    {
-        return $this->ipAddress;
-    }
-
-    public function setIpAddress(string $ipAddress): static
-    {
-        $this->ipAddress = $ipAddress;
-
-        return $this;
     }
 
     public function getCreatedAt(): ?\DateTimeImmutable
@@ -60,6 +53,18 @@ class ArticleLike
     public function setArticle(?Article $article): static
     {
         $this->article = $article;
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }

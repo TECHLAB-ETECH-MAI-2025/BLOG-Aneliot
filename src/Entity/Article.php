@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ArticleRepository::class)]
 class Article
@@ -14,34 +15,37 @@ class Article
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['article:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['article:read'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['article:read'])]
     private ?string $content = null;
 
     #[ORM\Column]
+    #[Groups(['article:read'])]
     private ?\DateTime $createdAt = null;
 
-    /**
-     * @var Collection<int, Category>
-     */
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'articles')]
+    #[Groups(['article:read'])]
     private Collection $categories;
 
-    /**
-     * @var Collection<int, Comment>
-     */
     #[ORM\OneToMany(targetEntity: Comment::class, mappedBy: 'article', orphanRemoval: true)]
+    #[Groups(['article:read'])]
     private Collection $comments;
 
-    /**
-     * @var Collection<int, ArticleLike>
-     */
     #[ORM\OneToMany(targetEntity: ArticleLike::class, mappedBy: 'article')]
+    #[Groups(['article:read'])]
     private Collection $articleLikes;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['article:read'])]
+    private ?User $author = null;
 
     public function __construct()
     {
@@ -91,6 +95,18 @@ class Article
         return $this;
     }
 
+    public function getAuthor(): ?User
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?User $author): static
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Category>
      */
@@ -136,7 +152,6 @@ class Article
     public function removeComment(Comment $comment): static
     {
         if ($this->comments->removeElement($comment)) {
-            // set the owning side to null (unless already changed)
             if ($comment->getArticle() === $this) {
                 $comment->setArticle(null);
             }
@@ -166,7 +181,6 @@ class Article
     public function removeArticleLike(ArticleLike $articleLike): static
     {
         if ($this->articleLikes->removeElement($articleLike)) {
-            // set the owning side to null (unless already changed)
             if ($articleLike->getArticle() === $this) {
                 $articleLike->setArticle(null);
             }
@@ -174,6 +188,8 @@ class Article
 
         return $this;
     }
+
+    #[Groups(['article:read'])]
     public function getArticleLikesCount(): int
     {
         return $this->articleLikes->count();

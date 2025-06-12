@@ -25,8 +25,8 @@ class ArticleRepository extends ServiceEntityRepository
             ->setParameter('search', '%' . strtolower($search) . '%');
     }
 
-    // Allowed columns for sorting;
-    $allowedFields = ['a.id', 'a.title', 'a.createdAt']; // only real Article fields
+
+    $allowedFields = ['a.id', 'a.title', 'a.createdAt']; 
     $orderDir = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
 
      if ($orderColumn === 'commentsCount') {
@@ -83,6 +83,71 @@ class ArticleRepository extends ServiceEntityRepository
         'filteredCount' => $filteredCount,
     ];
 }
+    public function findForApi(int $start, int $length, ?string $search, string $orderColumn, string $orderDir): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->select('a.id')
+            ->leftJoin('a.categories', 'c');
+
+        if ($search) {
+            $qb->andWhere('LOWER(a.title) LIKE :search OR LOWER(c.title) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
+
+        $allowedFields = ['a.id', 'a.title', 'a.createdAt']; 
+        $orderDir = strtoupper($orderDir) === 'DESC' ? 'DESC' : 'ASC';
+
+        if ($orderColumn === 'commentsCount') {
+            $qb->addSelect('COUNT(com.id) AS HIDDEN commentsCount')
+                ->leftJoin('a.comments', 'com')
+                ->groupBy('a.id')
+                ->orderBy('commentsCount', $orderDir);
+        } elseif ($orderColumn === 'likesCount') {
+            $qb->addSelect('COUNT(l.id) AS HIDDEN likesCount')
+                ->leftJoin('a.articleLikes', 'l')
+                ->groupBy('a.id')
+                ->orderBy('likesCount', $orderDir);
+        } elseif ($orderColumn === 'categories') {
+            $qb->addSelect('COUNT(c.id) AS HIDDEN categoriesCount')
+                ->groupBy('a.id')
+                ->orderBy('categoriesCount', $orderDir);
+        } elseif (in_array($orderColumn, $allowedFields, true)) {
+            $qb->orderBy($orderColumn, $orderDir);
+        } else {
+            $qb->orderBy('a.createdAt', $orderDir);
+        }
+
+        $qb->setFirstResult($start)
+            ->setMaxResults($length);
+
+        $totalCount = $this->createQueryBuilder('a')
+            ->select('COUNT(a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $filteredCountQb = $this->createQueryBuilder('a')
+            ->leftJoin('a.categories', 'c');
+
+        if ($search) {
+            $filteredCountQb
+                ->andWhere('LOWER(a.title) LIKE :search OR LOWER(c.title) LIKE :search')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
+
+        $filteredCount = $filteredCountQb
+            ->select('COUNT(DISTINCT a.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $ids = $qb->getQuery()->getArrayResult();
+
+        return [
+            'data' => $ids,
+            'totalCount' => $totalCount,
+            'filteredCount' => $filteredCount,
+        ];
+    }
+    
 
 
 
