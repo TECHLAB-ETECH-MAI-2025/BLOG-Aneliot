@@ -15,17 +15,13 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
-<<<<<<< HEAD
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\HttpFoundation\Cookie;
 use Firebase\JWT\JWT;
-=======
->>>>>>> feature-chat
 
 #[Route('/chat')]
 class ChatController extends AbstractController
 {
-<<<<<<< HEAD
     // #[Route('/{receiverId}', name: 'chat_index', requirements: ['receiverId' => '\d+'])]
     // public function index(
     //     int $receiverId,
@@ -107,8 +103,6 @@ class ChatController extends AbstractController
 
     //     return $response;
     // }
-=======
->>>>>>> feature-chat
     #[Route('/{receiverId}', name: 'chat_index', requirements: ['receiverId' => '\d+'])]
     public function index(
         int $receiverId,
@@ -179,117 +173,78 @@ class ChatController extends AbstractController
     //     return new JsonResponse(['success' => true]);
     // }
     #[Route('/send', name: 'send', methods: ['POST'])]
-<<<<<<< HEAD
-public function sendMessage(
-    EntityManagerInterface $entityManager,
-    Request $request,
-    HubInterface $hub,
-    ValidatorInterface $validator
-): Response {
-    $content = trim($request->request->get('content', ''));
-    $receiverId = $request->request->get('receiver');
-
-    if (empty($content)) {
-        return new JsonResponse(['error' => 'Message content cannot be empty'], 400);
-    }
-
-    if (!$receiverId) {
-        return new JsonResponse(['error' => 'Receiver ID is required'], 400);
-    }
-
-    $sender = $this->getUser();
-    $receiver = $entityManager->getRepository(User::class)->find($receiverId);
-
-    if (!$sender) {
-        return new JsonResponse(['error' => 'You must be logged in to send messages'], 401);
-    }
-
-    if (!$receiver) {
-        return new JsonResponse(['error' => 'Receiver not found'], 404);
-    }
-    $message = new Message();
-    $message->setSender($sender);
-    $message->setReceiver($receiver);
-    $message->setContent($content);
-    $message->setCreatedAt(new \DateTime());
-
-    $errors = $validator->validate($message);
-    if (count($errors) > 0) {
-        $errorMessages = [];
-        foreach ($errors as $error) {
-            $errorMessages[] = $error->getMessage();
-        }
-        return new JsonResponse(['errors' => $errorMessages], 400);
-    }
-
-    $entityManager->persist($message);
-    $entityManager->flush();
-    $topic = 'http://chat.example.com/conversation/'.$receiver->getId();
-    $updateData = [
-        'type' => 'message.new',
-        'id' => $message->getId(),
-        'sender' => [
-            'id' => $sender->getId(),
-        ],
-        'receiver' => [
-            'id' => $receiver->getId(),
-        ],
-        'content' => $content,
-        'timestamp' => $message->getCreatedAt()->format(\DateTimeInterface::ATOM),
-        'status' => 'delivered'
-    ];
-
-    $update = new Update(
-        [$topic, 'http://chat.example.com/user/'.$sender->getId()], 
-        json_encode($updateData),
-        true
-    );
-    $hub->publish($update);
-
-    return new JsonResponse([
-        'status' => 'sent',
-        'message' => $updateData,
-        'topic' => $topic
-    ]);
-}
-
-=======
     public function sendMessage(
         EntityManagerInterface $entityManager,
         Request $request,
-        HubInterface $hub
+        HubInterface $hub,
+        ValidatorInterface $validator
     ): Response {
-        $content = $request->request->get('content');
+        $content = trim($request->request->get('content', ''));
         $receiverId = $request->request->get('receiver');
 
-        $receiver = $entityManager->getRepository(User::class)->find($receiverId);
-        $sender = $this->getUser();
+        if (empty($content)) {
+            return new JsonResponse(['error' => 'Message content cannot be empty'], 400);
+        }
 
+        if (!$receiverId) {
+            return new JsonResponse(['error' => 'Receiver ID is required'], 400);
+        }
+
+        $sender = $this->getUser();
+        $receiver = $entityManager->getRepository(User::class)->find($receiverId);
+
+        if (!$sender) {
+            return new JsonResponse(['error' => 'You must be logged in to send messages'], 401);
+        }
+
+        if (!$receiver) {
+            return new JsonResponse(['error' => 'Receiver not found'], 404);
+        }
         $message = new Message();
         $message->setSender($sender);
         $message->setReceiver($receiver);
         $message->setContent($content);
         $message->setCreatedAt(new \DateTime());
 
+        $errors = $validator->validate($message);
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            return new JsonResponse(['errors' => $errorMessages], 400);
+        }
+
         $entityManager->persist($message);
         $entityManager->flush();
+        $topic = 'http://chat.example.com/conversation/'.$receiver->getId();
+        $updateData = [
+            'type' => 'message.new',
+            'id' => $message->getId(),
+            'sender' => [
+                'id' => $sender->getId(),
+            ],
+            'receiver' => [
+                'id' => $receiver->getId(),
+            ],
+            'content' => $content,
+            'timestamp' => $message->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'status' => 'delivered'
+        ];
 
-        // Envoie via Mercure
         $update = new Update(
-             'http://chat.example.com/conversation/' . $receiver->getId(),
-             json_encode([
-                'senderEmail' => $sender->getUserIdentifier(),
-                'message' => $content,
-                'createdAt' => $message->getCreatedAt()->format('H:i:s'),
-            ])
+            [$topic, 'http://chat.example.com/user/'.$sender->getId()], 
+            json_encode($updateData),
+            true
         );
-
         $hub->publish($update);
 
-        return new JsonResponse(['success' => true]);
+        return new JsonResponse([
+            'status' => 'sent',
+            'message' => $updateData,
+            'topic' => $topic
+        ]);
     }
-
->>>>>>> feature-chat
     #[Route('/mercure-test')]
     public function test(HubInterface $hub): Response
     {

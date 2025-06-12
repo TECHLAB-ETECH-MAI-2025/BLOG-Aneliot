@@ -51,17 +51,8 @@ security:
         - { path: ^/article, roles: PUBLIC_ACCESS }
         - { path: ^/comment, roles: PUBLIC_ACCESS }
         - { path: ^/category, roles: ROLE_ADMIN }
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-        - { path: ^/chat, roles: ROLE_USER }
->>>>>>> feature-chat
-
-
-=======
         - { path: ^/chat, roles: ROLE_USER }
         - { path: ^/, roles: PUBLIC_ACCESS }
->>>>>>> Stashed changes
 
     role_hierarchy:
         ROLE_ADMIN: ROLE_USER

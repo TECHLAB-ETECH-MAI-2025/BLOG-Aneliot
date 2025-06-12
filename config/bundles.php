@@ -16,14 +16,7 @@ return [
     Symfony\WebpackEncoreBundle\WebpackEncoreBundle::class => ['all' => true],
     SymfonyCasts\Bundle\VerifyEmail\SymfonyCastsVerifyEmailBundle::class => ['all' => true],
     SymfonyCasts\Bundle\ResetPassword\SymfonyCastsResetPasswordBundle::class => ['all' => true],
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
     Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true],
     Nelmio\CorsBundle\NelmioCorsBundle::class => ['all' => true],
     Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle::class => ['all' => true],
->>>>>>> Stashed changes
-=======
-    Symfony\Bundle\MercureBundle\MercureBundle::class => ['all' => true],
->>>>>>> feature-chat
 ];
