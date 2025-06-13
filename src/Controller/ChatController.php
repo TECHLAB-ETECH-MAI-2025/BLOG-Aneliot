@@ -22,87 +22,6 @@ use Firebase\JWT\JWT;
 #[Route('/chat')]
 class ChatController extends AbstractController
 {
-    // #[Route('/{receiverId}', name: 'chat_index', requirements: ['receiverId' => '\d+'])]
-    // public function index(
-    //     int $receiverId,
-    //     MessageRepository $messageRepository,
-    //     EntityManagerInterface $entityManager,
-    //     Request $request
-    // ): Response {
-    //     /** @var User $currentUser */
-    //     $currentUser = $this->getUser();
-    //     if (!$currentUser instanceof UserInterface) {
-    //         throw $this->createAccessDeniedException('Vous devez être connecté.');
-    //     }
-
-    //     $receiver = $entityManager->getRepository(User::class)->find($receiverId);
-    //     if (!$receiver) {
-    //         throw $this->createNotFoundException('Utilisateur non trouvé.');
-    //     }
-
-    //     // Get all users except the current one for the sidebar
-    //     $users = $entityManager->getRepository(User::class)->createQueryBuilder('u')
-    //         ->where('u != :currentUser')
-    //         ->setParameter('currentUser', $currentUser)
-    //         ->orderBy('u.email', 'ASC')
-    //         ->getQuery()
-    //         ->getResult();
-
-    //     // Fetch messages between current user and receiver
-    //     $messages = $messageRepository->findConversation($currentUser->getId(), $receiverId);
-
-    //     // Handle message form
-    //     $message = new Message();
-    //     $form = $this->createForm(MessageForm::class, $message);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $message->setSender($currentUser);
-    //         $message->setReceiver($receiver);
-    //         $message->setCreatedAt(new \DateTime());
-
-    //         $entityManager->persist($message);
-    //         $entityManager->flush();
-
-    //         return $this->redirectToRoute('chat_index', ['receiverId' => $receiverId]);
-    //     }
-
-    //     $topic = "http://chat.example.com/conversation/{$receiverId}";
-
-    //     $payload = [
-    //         'mercure' => [
-    //             'subscribe' => [$topic],
-    //         ],
-    //         'exp' => time() + 3600, // valid for 1 hour
-    //     ];
-
-    //     $jwt = JWT::encode(
-    //         $payload,
-    //         $_ENV['MERCURE_JWT_SECRET'],
-    //         'HS256'
-    //     );
-
-    //     // ✅ Create the cookie
-    //     $cookie = Cookie::create('mercureAuthorization')
-    //         ->withValue("Bearer $jwt")
-    //         ->withSecure(false) // true if using HTTPS
-    //         ->withHttpOnly(true)
-    //         ->withPath('/.well-known/mercure')
-    //         ->withSameSite('Lax'); // or 'None' if frontend is on a different origin
-
-    //     // ✅ Create the response as before
-    //     $response = $this->render('chat/index.html.twig', [
-    //         'messages' => $messages,
-    //         'receiver' => $receiver,
-    //         'form' => $form->createView(),
-    //         'users' => $users, 
-    //     ]);
-
-    //     // ✅ Attach the Mercure auth cookie
-    //     $response->headers->setCookie($cookie);
-
-    //     return $response;
-    // }
     #[Route('/{receiverId}', name: 'chat_index', requirements: ['receiverId' => '\d+'])]
     public function index(
         int $receiverId,
@@ -191,6 +110,7 @@ class ChatController extends AbstractController
         }
 
         $sender = $this->getUser();
+        $senderId = $sender ? $sender->getId() : null;
         $receiver = $entityManager->getRepository(User::class)->find($receiverId);
 
         if (!$sender) {
@@ -217,12 +137,16 @@ class ChatController extends AbstractController
 
         $entityManager->persist($message);
         $entityManager->flush();
-        $topic = 'http://chat.example.com/conversation/'.$receiver->getId();
+        $minId = min($senderId, $receiverId);
+        $maxId = max($senderId, $receiverId);
+
+        $topic = "http://localhost:8000/conversation/{$minId}-{$maxId}";
         $updateData = [
             'type' => 'message.new',
             'id' => $message->getId(),
             'sender' => [
                 'id' => $sender->getId(),
+                'email' => $sender->getEmail(),
             ],
             'receiver' => [
                 'id' => $receiver->getId(),
@@ -232,11 +156,7 @@ class ChatController extends AbstractController
             'status' => 'delivered'
         ];
 
-        $update = new Update(
-            [$topic, 'http://chat.example.com/user/'.$sender->getId()], 
-            json_encode($updateData),
-            true
-        );
+        $update = new Update([$topic], json_encode($updateData), false);
         $hub->publish($update);
 
         return new JsonResponse([

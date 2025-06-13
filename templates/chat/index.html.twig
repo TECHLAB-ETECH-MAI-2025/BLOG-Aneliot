@@ -44,6 +44,7 @@
                 <div class="mb-3">
                     <textarea id="message-content" class="form-control" placeholder="Votre message..."></textarea>
                     <input type="hidden" id="receiver-id" value="{{ receiver.id }}">
+                    <input type="hidden" id="sender-id" value="{{ app.user.id }}">
                 </div>
                 <button type="submit" id="send-message" class="btn btn-primary mt-2">Envoyer</button>
             </form>

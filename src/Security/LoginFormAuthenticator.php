@@ -15,16 +15,20 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordC
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
 use Symfony\Component\Security\Http\Security;
+use Firebase\JWT\JWT;
+use Symfony\Component\HttpFoundation\Cookie;
 
 class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 {
     use TargetPathTrait;
 
-    public const LOGIN_ROUTE = 'app_login';
+    public const LOGIN_ROUTE = 'app_login';    
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
-    {
-    }
+    public function __construct(
+    private UrlGeneratorInterface $urlGenerator,
+    private string $mercureJwtSecret
+) {}
+
 
     public function authenticate(Request $request): Passport
     {
@@ -42,14 +46,35 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
         );
     }
 
-    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName):?Response
+    public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+
+        $topic = "http://localhost:8000/conversation/*";
+
+        $payload = [
+            'mercure' => ['subscribe' => [$topic]],
+            'exp' => time() + 3600,
+        ];
+
+        $jwt = JWT::encode($payload,  $this->mercureJwtSecret, 'HS256');
+
+        $cookie = Cookie::create('mercureAuthorization')
+            ->withValue($jwt)
+            ->withSecure(false)
+            ->withHttpOnly(true)
+            ->withPath('/.well-known/mercure')
+            ->withSameSite('Lax');
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-            return new RedirectResponse($targetPath);
+            $response = new RedirectResponse($targetPath);
+        } else {
+            $response = new RedirectResponse($this->urlGenerator->generate('app_home'));
         }
 
-        // Redirection vers la page d'accueil après connexion
-        return new RedirectResponse($this->urlGenerator->generate('app_home'));
+        // Ajouter le cookie Mercure à la réponse
+        $response->headers->setCookie($cookie);
+
+        return $response;
     }
 
     protected function getLoginUrl(Request $request): string
