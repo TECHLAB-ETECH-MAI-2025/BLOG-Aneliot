@@ -74,23 +74,6 @@ class ChatController extends AbstractController
             'users' => $users, 
         ]);
     }
-    // #[Route('/send', name: 'send', methods: ['POST'])]
-    // public function sendMessage(EntityManagerInterface $entityManager, Request $request): Response
-    // {
-    //     $content = $request->request->get('content');
-    //     $receiverId = $request->request->get('receiver');
-        
-    //     $message = new Message();
-    //     $message->setSender($this->getUser());
-    //     $message->setReceiver($entityManager->getRepository(User::class)->find($receiverId));
-    //     $message->setContent($content);
-    //     $message->setCreatedAt(new \DateTime());
-
-    //     $entityManager->persist($message);
-    //     $entityManager->flush();
-
-    //     return new JsonResponse(['success' => true]);
-    // }
     #[Route('/send', name: 'send', methods: ['POST'])]
     public function sendMessage(
         EntityManagerInterface $entityManager,

@@ -44,7 +44,14 @@ class ApiController extends AbstractController
 
         $results = $articleRepository->findForApi($start, $length, $search, $orderColumn, $orderDir);
         $ids = array_column($results['data'], 'id');
-        $articles = $articleRepository->findBy(['id' => $ids]);
+        $articles = [];
+
+        foreach ($ids as $id) {
+            $article = $articleRepository->find($id);
+            if ($article !== null) {
+                $articles[] = $article;
+            }
+        }
         return $this->json([
             'data' => $articles,
             'totalCount' => $results['totalCount'],
@@ -116,7 +123,9 @@ class ApiController extends AbstractController
 
         $like = new ArticleLike();
         $like->setArticle($article);
-        $like->setCreatedAt(new \DateTimeImmutable());
+        $timezone = new \DateTimeZone('Indian/Antananarivo');
+        $dateImmutable = new \DateTimeImmutable('now', $timezone);
+        $like->setCreatedAt($dateImmutable);
 
         if ($user) {
             $like->setUser($this->getUser());
@@ -142,7 +151,9 @@ class ApiController extends AbstractController
         $article = new Article();
         $article->setTitle($data['title']);
         $article->setContent($data['content']);
-        $article->setCreatedAt(new \DateTime());
+        $timezone = new \DateTimeZone('Indian/Antananarivo');
+        $date = new \DateTime('now', $timezone);
+        $article->setCreatedAt($date);
 
         $categoryRepo = $em->getRepository(Category::class);
         foreach ($data['categoryIds'] as $catId) {
@@ -179,7 +190,9 @@ class ApiController extends AbstractController
             $category = new Category();
             $category->setTitle($data['title']);
             $category->setDescription('no description');
-            $category->setCreatedAd(new \DateTime());
+            $timezone = new \DateTimeZone('Indian/Antananarivo');
+            $date = new \DateTime('now', $timezone);
+            $category->setCreatedAd($date);
             $em->persist($category);
             $em->flush();
 

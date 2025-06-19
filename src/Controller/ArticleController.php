@@ -31,28 +31,6 @@ final class ArticleController extends AbstractController
         $this->formFactory = $formFactory;
         $this->commentRepository = $commentRepository;
     }
-    // #[Route(name: 'app_article_index', methods: ['GET'])]
-    // public function index(): Response
-    // {
-    //     $articles = $this->articleRepository->findAll();
-    //     $forms = [];
-
-    //     foreach ($articles as $article) {
-    //         $comment = new Comment();
-    //         $form = $this->formFactory->create(CommentForm::class, $comment, [
-    //             'article_id' => $article->getId(),
-    //             'action' => $this->generateUrl('app_comment_new', [
-    //                 'article_id' => $article->getId(),
-    //             ]),
-    //         ]);
-    //         $forms[$article->getId()] = $form->createView();
-    //     }
-
-    //     return $this->render('article/index.html.twig', [
-    //         'articles' => $articles,
-    //         'forms' => $forms,
-    //     ]);
-    // }
     #[Route(name: 'app_article_index', methods: ['GET'])]
     public function index(): Response
     {
@@ -262,11 +240,18 @@ final class ArticleController extends AbstractController
         EntityManagerInterface $entityManager,
         ArticleLikeRepository $likeRepository
     ): JsonResponse {
-        $ipAddress = $request->getClientIp();
+        $user = $this->getUser(); // Get the currently authenticated user
+
+        if (!$user) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => 'Authentication required.'
+            ], 401);
+        }
 
         $existingLike = $likeRepository->findOneBy([
             'article' => $article,
-            'ipAddress' => $ipAddress,
+            'user' => $user,
         ]);
 
         if ($existingLike) {
@@ -277,7 +262,7 @@ final class ArticleController extends AbstractController
         } else {
             $like = new ArticleLike();
             $like->setArticle($article);
-            $like->setIpAddress($ipAddress);
+            $like->setUser($user);
             $like->setCreatedAt(new \DateTimeImmutable());
 
             $entityManager->persist($like);
