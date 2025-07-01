@@ -5,8 +5,7 @@ namespace App\Controller;
 use App\Entity\Category;
 use App\Form\CategoryForm;
 use App\Repository\CategoryRepository;
-use DateTime;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Service\CategoryService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,24 +23,17 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/new', name: 'app_category_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, CategoryService $categoryService): Response
     {
-        $category = new Category();
-        $form = $this->createForm(CategoryForm::class, $category);
-        $form->handleRequest($request);
+        $result = $categoryService->handleNew($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $currentDate = new \DateTime();
-            $category->setCreatedAd($currentDate);
-            $entityManager->persist($category);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        if ($result['success']) {
+            return $this->redirectToRoute('app_category_index');
         }
 
         return $this->render('category/new.html.twig', [
-            'category' => $category,
-            'form' => $form,
+            'category' => $result['category'],
+            'form' => $result['form']->createView(),
         ]);
     }
 
@@ -54,33 +46,25 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_category_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Category $category, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Category $category, CategoryService $categoryService): Response
     {
-        $form = $this->createForm(CategoryForm::class, $category);
-        $form->handleRequest($request);
+        $result = $categoryService->handleEdit($request, $category);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $currentDate = new \DateTime();
-            $category->setCreatedAd($currentDate);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        if ($result['success']) {
+            return $this->redirectToRoute('app_category_index');
         }
 
         return $this->render('category/edit.html.twig', [
             'category' => $category,
-            'form' => $form,
+            'form' => $result['form']->createView(),
         ]);
     }
 
     #[Route('/{id}', name: 'app_category_delete', methods: ['POST'])]
-    public function delete(Request $request, Category $category, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Category $category, CategoryService $categoryService): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$category->getId(), $request->getPayload()->getString('_token'))) {
-            $entityManager->remove($category);
-            $entityManager->flush();
-        }
+        $categoryService->handleDelete($request, $category);
 
-        return $this->redirectToRoute('app_category_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_category_index');
     }
 }

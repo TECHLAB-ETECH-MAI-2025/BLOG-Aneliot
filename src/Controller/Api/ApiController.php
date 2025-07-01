@@ -2,235 +2,80 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\User;
-use App\Entity\Category;
-use App\Entity\Comment;
-use App\Entity\Article;
-use App\Entity\ArticleLike;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Repository\ArticleRepository;
+use App\Service\ApiService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 #[Route('/api')]
 class ApiController extends AbstractController
 {
+    public function __construct(private ApiService $apiService) {}
+
     #[Route('/users', name: 'api_user_list', methods: ['GET'])]
-    public function list(EntityManagerInterface $em): JsonResponse
+    public function list(): JsonResponse
     {
-        $users = $em->getRepository(User::class)->findAll();
-
-        return $this->json($users, 200, [], ['groups' => 'user:read']);
+        return $this->apiService->listUsers();
     }
+
     #[Route('/login', name: 'api_login', methods: ['POST'])]
-    public function login(Request $request)
+    public function login(): JsonResponse
     {
-        return $this->json(['message' => 'Login should be handled by Lexik JWT']);
+        return $this->json(['message' => 'Login is handled by Lexik JWT']);
     }
+
     #[Route('/articles', name: 'api_articles_list', methods: ['GET'])]
-    public function articlesList(Request $request, ArticleRepository $articleRepository): JsonResponse
+    public function articlesList(Request $request): JsonResponse
     {
-       $start = (int) $request->query->get('start');
-        $length = (int) $request->query->get('length');
-        $search = $request->query->get('search');
-        $orderColumn = $request->query->get('orderColumn');
-        $allowedFields = ['a.id', 'a.title', 'a.createdAt', 'commentsCount', 'likesCount', 'categoriesCount'];
-        if (!in_array($orderColumn, $allowedFields, true)) {
-            $orderColumn = 'a.createdAt';
-        }
-        $orderDir = strtoupper($request->query->get('orderDir')) === 'ASC' ? 'ASC' : 'DESC';
-
-        $results = $articleRepository->findForApi($start, $length, $search, $orderColumn, $orderDir);
-        $ids = array_column($results['data'], 'id');
-        $articles = [];
-
-        foreach ($ids as $id) {
-            $article = $articleRepository->find($id);
-            if ($article !== null) {
-                $articles[] = $article;
-            }
-        }
-        return $this->json([
-            'data' => $articles,
-            'totalCount' => $results['totalCount'],
-            'filteredCount' => $results['filteredCount'],
-        ], 200, [], ['groups' => 'article:read']);
+        return $this->apiService->listArticles($request);
     }
+
     #[Route('/articles/{id}', name: 'api_article_show', methods: ['GET'])]
-    public function showArticle(int $id, ArticleRepository $articleRepository): JsonResponse
+    public function showArticle(int $id): JsonResponse
     {
-        $article = $articleRepository->find($id);
-
-        if (!$article) {
-            return $this->json(['message' => 'Article not found'], 404);
-        }
-
-        return $this->json($article, 200, [], ['groups' => 'article:read']);
+        return $this->apiService->showArticle($id);
     }
+
     #[Route('/comments', name: 'api_comment_add', methods: ['POST'])]
-    public function addComment(Request $request, EntityManagerInterface $em, ArticleRepository $articleRepository): JsonResponse
+    public function addComment(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        if (!isset($data['articleId'], $data['content'])) {
-            return $this->json(['message' => 'Invalid payload'], 400);
-        }
-
-        $article = $articleRepository->find($data['articleId']);
-        if (!$article) {
-            return $this->json(['message' => 'Article not found'], 404);
-        }
-
-        $comment = new Comment();
-        $comment->setArticle($article);
-        $comment->setContent($data['content']);
-        $comment->setCreatedAt(new \DateTime());
-
-        if ($this->getUser()) {
-            $comment->setUser($this->getUser());
-        }
-
-        $em->persist($comment);
-        $em->flush();
-
-        return $this->json(['message' => 'Comment added'], 201);
+        return $this->apiService->addComment($request, $this->getUser());
     }
+
     #[Route('/likes', name: 'api_like_add', methods: ['POST'])]
-    public function addLike(Request $request, EntityManagerInterface $em, ArticleRepository $articleRepository): JsonResponse
+    public function addLike(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        if (!isset($data['articleId'])) {
-            return $this->json(['message' => 'Invalid payload'], 400);
-        }
-
-        $article = $articleRepository->find($data['articleId']);
-        if (!$article) {
-            return $this->json(['message' => 'Article not found'], 404);
-        }
-        $user = $this->getUser();
-        if ($user) {
-            $existingLike = $em->getRepository(ArticleLike::class)->findOneBy([
-                'article' => $article,
-                'user' => $user,
-            ]);
-            if ($existingLike) {
-                return $this->json(['message' => 'Already liked'], 200);
-            }
-        }
-
-        $like = new ArticleLike();
-        $like->setArticle($article);
-        $timezone = new \DateTimeZone('Indian/Antananarivo');
-        $dateImmutable = new \DateTimeImmutable('now', $timezone);
-        $like->setCreatedAt($dateImmutable);
-
-        if ($user) {
-            $like->setUser($this->getUser());
-        }
-
-        $em->persist($like);
-        $em->flush();
-
-        return $this->json(['message' => 'Like added'], 201);
+        return $this->apiService->addLike($request, $this->getUser());
     }
+
     #[Route('/articles', name: 'api_article_create', methods: ['POST'])]
-    public function createArticle(Request $request, EntityManagerInterface $em): JsonResponse
+    public function createArticle(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        if (
-            !isset($data['title'], $data['content'], $data['categoryIds']) ||
-            !is_array($data['categoryIds'])
-        ) {
-            return $this->json(['message' => 'Invalid payload'], 400);
-        }
-
-        $article = new Article();
-        $article->setTitle($data['title']);
-        $article->setContent($data['content']);
-        $timezone = new \DateTimeZone('Indian/Antananarivo');
-        $date = new \DateTime('now', $timezone);
-        $article->setCreatedAt($date);
-
-        $categoryRepo = $em->getRepository(Category::class);
-        foreach ($data['categoryIds'] as $catId) {
-            $category = $categoryRepo->find($catId);
-            if ($category) {
-                $article->addCategory($category);
-            }
-        }
-
-        if ($this->getUser()) {
-            $article->setAuthor($this->getUser());
-        }
-
-        $em->persist($article);
-        $em->flush();
-
-        return $this->json($article, 201, [], ['groups' => 'article:read']);
+        return $this->apiService->createArticle($request, $this->getUser());
     }
+
     #[Route('/categories', name: 'api_category_list', methods: ['GET'])]
-    public function fetchCategories(EntityManagerInterface $em): JsonResponse
+    public function fetchCategories(): JsonResponse
     {
-        $categories = $em->getRepository(Category::class)->findAll();
-        return $this->json($categories, 200, [], ['groups' => 'category:read']);
+        return $this->apiService->fetchCategories();
     }
+
     #[Route('/categories', name: 'api_category_create', methods: ['POST'])]
-    public function createCategory(Request $request, EntityManagerInterface $em): JsonResponse
+    public function createCategory(Request $request): JsonResponse
     {
-        try {
-            $data = json_decode($request->getContent(), true);
-            if (!isset($data['title'])) {
-                return $this->json(['message' => 'Invalid payload'], 400);
-            }
-
-            $category = new Category();
-            $category->setTitle($data['title']);
-            $category->setDescription('no description');
-            $timezone = new \DateTimeZone('Indian/Antananarivo');
-            $date = new \DateTime('now', $timezone);
-            $category->setCreatedAd($date);
-            $em->persist($category);
-            $em->flush();
-
-            return $this->json($category, 201, [], ['groups' => 'category:read']);
-        } catch (\Throwable $e) {
-            return $this->json(['error' => $e->getMessage()], 500);
-        }
+        return $this->apiService->createCategory($request);
     }
+
     #[Route('/categories/{id}', name: 'api_category_update', methods: ['PUT'])]
-    public function updateCategory(int $id, Request $request, EntityManagerInterface $em): JsonResponse
+    public function updateCategory(int $id, Request $request): JsonResponse
     {
-        $category = $em->getRepository(Category::class)->find($id);
-        if (!$category) {
-            return $this->json(['message' => 'Category not found'], 404);
-        }
-
-        $data = json_decode($request->getContent(), true);
-        if (!isset($data['title'])) {
-            return $this->json(['message' => 'Invalid payload'], 400);
-        }
-
-        $category->setTitle($data['title']);
-        $em->flush();
-
-        return $this->json($category, 200, [], ['groups' => 'category:read']);
+        return $this->apiService->updateCategory($id, $request);
     }
+
     #[Route('/categories/{id}', name: 'api_category_delete', methods: ['DELETE'])]
-    public function deleteCategory(int $id, EntityManagerInterface $em): JsonResponse
+    public function deleteCategory(int $id): JsonResponse
     {
-        $category = $em->getRepository(Category::class)->find($id);
-        if (!$category) {
-            return $this->json(['message' => 'Category not found'], 404);
-        }
-
-        $em->remove($category);
-        $em->flush();
-
-        return $this->json(['message' => 'Category deleted'], 200);
+        return $this->apiService->deleteCategory($id);
     }
-    
 }
